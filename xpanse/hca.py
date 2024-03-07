@@ -1,15 +1,22 @@
 # hca.py
 # Hardware Connector Application
 import time
-import random
-from umqtt.simple import MQTTClient
+from mqtt_client_wrapper import MQTTClientWrapper
 
-SERVER="localhost"
-ClientID = f'raspberry-hca-sub-{time.time_ns()}'
-user = "mqttuser"
+server="localhost"
+clientId = f'raspberry-hca-sub-{time.time_ns()}'
+username = "mqttuser"
 password = "mqtt"
 topicsToSubscribe = ["xpanse/sensordata/request"]
-client = MQTTClient(ClientID, SERVER, 1883, user, password)
+client = MQTTClientWrapper(server, clientId, username, password)
+
+def main():
+    client.setCallback(sub)
+    client.connect()
+    client.subscribeToTopics(topicsToSubscribe)
+    while True:
+        if True:
+            client.waitForMessage()
 
 def generate_sensor_data():
     # round(random.uniform(0.0,20.0), 2)
@@ -22,28 +29,13 @@ def generate_sensor_data():
     return sensor_data
 
 def publishMessage(topic, msg):
-    print('send message %s on topic %s' % (msg, topic))
-    client.publish(topic, msg, qos=0)
+    client.publishMessage(topic,msg)
 
 def sub(topic, msg):
+    print('-------------------------------------------------------------------')
     print('received message %s on topic %s' % (msg, topic))
     responseTopic = 'xpanse/sensordata/response'
     responseMsg = str(generate_sensor_data())
     publishMessage(responseTopic, responseMsg)
 
-def main(server=SERVER):
-    client.set_callback(sub)
-    client.connect()
-    print('Connected to MQTT Broker "%s"' % (server))
-
-    for topic in topicsToSubscribe:
-        client.subscribe(topic)
-    while True:
-        if True:
-            client.wait_msg()
-        else:
-            client.check_msg()
-            time.sleep(5)
-
-if __name__ == "__main__":
-    main()
+main()
