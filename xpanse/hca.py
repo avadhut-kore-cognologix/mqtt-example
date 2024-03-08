@@ -1,6 +1,7 @@
 # hca.py
 # Hardware Connector Application
 import time
+import random
 from mqtt_client_wrapper import MQTTClientWrapper
 
 server="localhost"
@@ -19,12 +20,11 @@ def main():
             client.waitForMessage()
 
 def generate_sensor_data():
-    # round(random.uniform(0.0,20.0), 2)
     sensor_data = {
         "timestamp": int(time.time()),
         "device_id":"dev123",
         "sensor_id":"sensor123",
-        "data":{"windspeed": 5.9}
+        "data":{"windspeed": random.randint(0, 100)}
     }
     return sensor_data
 
