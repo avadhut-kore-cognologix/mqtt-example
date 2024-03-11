@@ -1,17 +1,16 @@
 # python3.6
 
+from configparser import ConfigParser
 import random
 
 from paho.mqtt import client as mqtt_client
 
+config_object = ConfigParser()
+config_object.read("xpanse-python3/config.ini")
+mqtt_config = config_object["MQTTCONFIG"]
 
-broker = 'broker.emqx.io'
-port = 1883
-topic = "python/mqtt"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
-# username = 'emqx'
-# password = 'public'
 
 
 def connect_mqtt() -> mqtt_client:
@@ -22,23 +21,25 @@ def connect_mqtt() -> mqtt_client:
             print("Failed to connect, return code %d\n", rc)
 
     client = mqtt_client.Client(client_id)
-    # client.username_pw_set(username, password)
+    client.username_pw_set(mqtt_config["username"], mqtt_config["password"])
     client.on_connect = on_connect
-    client.connect(broker, port)
+    client.connect(mqtt_config["broker"], int(mqtt_config["port"]))
     return client
 
 
-def subscribe(client: mqtt_client):
+def subscribe(client: mqtt_client, topics):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 
-    client.subscribe(topic)
+    for topic in topics:
+        client.subscribe(topic)
     client.on_message = on_message
 
 
 def run():
     client = connect_mqtt()
-    subscribe(client)
+    topicsToSubscribe = config_object.get("MQTTCONFIG", "topics").split("\n")
+    subscribe(client, topicsToSubscribe)
     client.loop_forever()
 
 
