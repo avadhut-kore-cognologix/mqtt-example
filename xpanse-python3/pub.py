@@ -54,7 +54,7 @@ def randomPublish(client, topics):
         time.sleep(1)
         topic = random.choice(topics)
         msg = str(generate_sensor_data())
-        result = client.publish(topic, msg)
+        result = client.publish(topic, msg, qos=2, retain=True)
         # result: [0, 1]
         status = result[0]
         if status == 0:
